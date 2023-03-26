@@ -43,30 +43,50 @@ export const Home = () => {
 
   const [name, setName] = React.useState({
     segment_name: "",
-    schema: [{ first_name: "" }, { last_name: "" }]
+    schema: []
   });
 
-  const [segment, setSegment] = React.useState("");
-
-  const handleChange = (event) => {
-    setSegment(event.target.value);
-  };
-
-  const [ids, setIds] = React.useState([
+  const [schemadata, setSchemadata] = React.useState([
     {
-      id: 1
+      id: 1,
+      key: "",
+      value: ""
     }
   ]);
 
+  const newArr = schemadata.map(({key, value}) => {
+    return {[key]: value};
+  })
+
+  const onArrayChange = (e, details, index) => {
+    const tempEventInputs = JSON.parse(JSON.stringify(details));
+    if (e.target) {
+      tempEventInputs["value"] = e.target.value;
+      tempEventInputs["key"] = e.target.value
+        ?.replace(/\s+/g, "_")
+        .toLowerCase();
+    }
+
+    setSchemadata((prevState) => {
+      prevState[index] = tempEventInputs;
+      return [...prevState];
+    });
+
+    
+  };
+
+
+
+
   const AddUser = (event) => {
-    let updateData = { id: ids.length + 1 };
-    setIds((prevState) => {
+    let updateData = { id: schemadata.length + 1 };
+    setSchemadata((prevState) => {
       return [...prevState, updateData];
     });
-    setSegment("");
+
   };
   const RemoveUser = (value) => {
-    setIds((prevState) => {
+    setSchemadata((prevState) => {
       prevState = prevState.filter((item) => item.id !== value);
       return [...prevState];
     });
@@ -84,10 +104,13 @@ export const Home = () => {
   };
 
   function submitHandler() {
-    axios.post("https://webhook.site/47601c6a-2821-4edf-b403-e1476737c56e", {
-      segment_name: name.segment_name,
-     schema:name.schema
-    });
+   
+    axios
+    .post("https://webhook.site/47601c6a-2821-4edf-b403-e1476737c56e",{
+      username: name.segment_name,
+          schema: newArr,
+    })
+   
   }
 
   React.useEffect(() => {
@@ -149,7 +172,7 @@ export const Home = () => {
           </div>
           <div>
             {" "}
-            {ids.map((data) => (
+            {schemadata.map((data,id) => (
               <>
                 <div className="d-flex p-2 align-items-center">
                   <FormControl key={data.id} className="mt-4" fullWidth>
@@ -158,18 +181,18 @@ export const Home = () => {
                     </InputLabel>
                     <Select
                       labelId="demo-simple-select-label"
-                      id="demo-simple-select"
-                      value={segment}
+                      id={data.id}
+                      value={data.value}
                       label="Add schema to segment"
-                      onChange={(e) => setName({ ...name, schema: e.target.value })}
+                      onChange={(e) => onArrayChange(e, data, id)}
                     >
-                      <MenuItem value="first_name">First Name</MenuItem>
-                      <MenuItem value="last_name">Last Name</MenuItem>
-                      <MenuItem value="gender">Gender</MenuItem>
-                      <MenuItem value="age">Age</MenuItem>
-                      <MenuItem value="account_name">Account Name</MenuItem>
-                      <MenuItem value="city">City</MenuItem>
-                      <MenuItem value="state">State</MenuItem>
+                      <MenuItem value="First Name">First Name</MenuItem>
+                      <MenuItem value="Last Name">Last Name</MenuItem>
+                      <MenuItem value="Gender">Gender</MenuItem>
+                      <MenuItem value="Age">Age</MenuItem>
+                      <MenuItem value="Account Name">Account Name</MenuItem>
+                      <MenuItem value="City">City</MenuItem>
+                      <MenuItem value="State">State</MenuItem>
                     </Select>
                   </FormControl>
                   <IndeterminateCheckBoxOutlinedIcon
@@ -196,7 +219,7 @@ export const Home = () => {
         >
           {" "}
           <Button
-          onClick={submitHandler}
+            onClick={(submitHandler)}
             variant="contained"
             sx={{
               background: "#39aebc",
